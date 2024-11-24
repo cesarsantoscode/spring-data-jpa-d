@@ -5,7 +5,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import pe.edu.cibertec.spring_data_jpa_d.entity.Customer;
+import pe.edu.cibertec.spring_data_jpa_d.entity.Film;
 import pe.edu.cibertec.spring_data_jpa_d.repository.CustomerRepository;
+import pe.edu.cibertec.spring_data_jpa_d.repository.FilmRepository;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -19,6 +21,9 @@ public class SpringDataJpaDApplication implements CommandLineRunner {
 
     @Autowired
     CustomerRepository customerRepository;
+
+    @Autowired
+    FilmRepository filmRepository;
 
     public static void main(String[] args) {
         SpringApplication.run(SpringDataJpaDApplication.class, args);
@@ -176,8 +181,63 @@ public class SpringDataJpaDApplication implements CommandLineRunner {
         /**
          * deleteAll()
          */
-        Iterable<Customer> iterable = customerRepository.findAllById(List.of(604, 608, 610));
-        customerRepository.deleteAll(iterable);
+//        Iterable<Customer> iterable = customerRepository.findAllById(List.of(604, 608, 610));
+//        customerRepository.deleteAll(iterable);
+
+        /**
+         * findAllById()
+         */
+//        Optional<Customer> optional = customerRepository.findById(1);
+//        optional.ifPresent(System.out::println);
+
+
+        /**
+         * findAll() - Caching
+         */
+        System.out.println(" ");
+        System.out.println("----------------------------------------------------------");
+        System.out.println("findAll() -> 1ra llamada a MySQL");
+        System.out.println("----------------------------------------------------------");
+        Iterable<Film> iterable = filmRepository.findAll();
+        iterable.forEach((film) -> {
+            String message = String.format("%s-%s;", film.getFilmId(), film.getTitle());
+            System.out.print(message);
+        });
+
+        System.out.println(" ");
+        System.out.println("----------------------------------------------------------");
+        System.out.println("findAll() -> 2da llamada a Caché");
+        System.out.println("----------------------------------------------------------");
+        Iterable<Film> iterable2 = filmRepository.findAll();
+        iterable2.forEach((film) -> {
+            String message = String.format("%s-%s;", film.getFilmId(), film.getTitle());
+            System.out.print(message);
+        });
+
+        System.out.println(" ");
+        System.out.println("----------------------------------------------------------");
+        System.out.println("save() -> Actualizar el valor de un película");
+        System.out.println("----------------------------------------------------------");
+        Optional<Film> optional = filmRepository.findById(1);
+        optional.ifPresentOrElse(
+                (film) -> {
+                    film.setTitle("LA ERA DE HIELO");
+                    filmRepository.save(film);
+                },
+                () -> {
+                    System.out.println("Film not found");
+                }
+        );
+
+        System.out.println(" ");
+        System.out.println("----------------------------------------------------------");
+        System.out.println("findAll() -> 3ra llamada a Caché");
+        System.out.println("----------------------------------------------------------");
+        Iterable<Film> iterable3 = filmRepository.findAll();
+        iterable3.forEach((film) -> {
+            String message = String.format("%s-%s;", film.getFilmId(), film.getTitle());
+            System.out.print(message);
+        });
 
 
     }
